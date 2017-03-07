@@ -1,11 +1,26 @@
+# This is needed for doing the "from utils import (...)" below.
 import sys; sys.path.append('.')
 
 import json
 from urllib.parse import urljoin
 
-from utils import SERVER_URL, do_login, do_logout, do_setup_worker, get_example_images, make_device_info, make_example_shot, make_uuid
+from utils import (
+    SERVER_URL,
+    do_login,
+    do_logout,
+    do_setup_worker,
+    get_example_images,
+    make_device_info,
+    make_example_shot,
+    make_uuid,
+)
 
-from molotov import scenario, global_setup, global_teardown, setup
+from molotov import (
+    scenario,
+    global_setup,
+    global_teardown,
+    setup,
+)
 
 
 @global_setup()
