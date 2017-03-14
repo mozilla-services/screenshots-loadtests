@@ -154,10 +154,13 @@ def setup_worker(worker_id, args):
     return {'cookies': _COOKIES}
 
 
-async def create_shot(session):
+async def create_shot(session=None):
     """
     Create/upload a new Page Shot shot.
     """
+    if session is None:
+        session = ClientSession(cookies=_COOKIES)
+
     path = "data/{}/test.com".format(make_uuid())
     path_pageshot = urljoin(SERVER_URL, path)
     data = make_example_shot()
