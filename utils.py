@@ -199,6 +199,19 @@ async def read_shot(session=None, path=None):
         return r
 
 
+async def list_shots(session=None):
+    """
+    Retrieve a list of shots (as JSON).
+    """
+    path = "shots?data=json"
+    path_pageshot = urljoin(SERVER_URL, path)
+    headers = {'content-type': 'application/json', 'accept': 'application/json, */*'}
+
+    async with session.get(path_pageshot, data={}, headers=headers) as r:
+        # print(r.json())
+        return r
+
+
 _COOKIES = None
 _SHOTS = []
 
