@@ -1,13 +1,8 @@
-
 import json
 import os
 import random
 import time
 import uuid
-
-# aiohttp issue on unclosed client session - https://github.com/python/asyncio/issues/258
-import concurrent.futures  #
-
 from urllib.parse import urljoin
 
 from aiohttp import ClientSession
@@ -105,11 +100,8 @@ def run_in_fresh_loop(coro):
     Create a new async event loop.
     """
     loop = asyncio.new_event_loop()
-    executor = concurrent.futures.ThreadPoolExecutor(5)  # python/asyncio#258
-    loop.set_default_executor(executor)   # python/asyncio#258
     task = loop.create_task(coro(loop))
     res = loop.run_until_complete(task)
-    executor.shutdown(wait=True)  # python/asyncio#258
     loop.close()
     return res
 
@@ -161,43 +153,59 @@ def setup_worker(worker_id, args):
     return {'cookies': _COOKIES}
 
 
-async def create_shot(session=None):
+async def create_shot(session=None, loop=None):
     """
     Create/upload a new Page Shot shot.
     """
     if session is None:
-        session = ClientSession(cookies=_COOKIES)
+        session = ClientSession(cookies=_COOKIES, loop=loop)
+        fresh_session = True
+    else:
+        fresh_session = False
 
-    path = "data/{}/test.com".format(make_uuid())
+    try:
+        path = "data/{}/test.com".format(make_uuid())
 
-    if path not in _SHOTS:
-        _SHOTS.append(path)
+        if path not in _SHOTS:
+            _SHOTS.append(path)
 
-    path_pageshot = urljoin(SERVER_URL, path)
-    data = make_example_shot()
-    headers = {'content-type': 'application/json'}
+        path_pageshot = urljoin(SERVER_URL, path)
+        data = make_example_shot()
+        headers = {'content-type': 'application/json'}
 
-    async with session.put(path_pageshot, data=json.dumps(data), headers=headers) as r:
-        r.path = path
-        r.session = session
-        return r
+        async with session.put(path_pageshot, data=json.dumps(data),
+                               headers=headers) as r:
+            r.path = path
+            r.session = session
+            return r
+    finally:
+        if fresh_session:
+            session.close()
 
 
-async def read_shot(session=None, path=None):
+async def read_shot(session=None, path=None, loop=None):
     """
     Read a shot, given a specific URL fragment (for example: "data/{UUID}/test.com")
     """
     if session is None:
-        session = ClientSession(cookies=_COOKIES)
+        session = ClientSession(cookies=_COOKIES, loop=loop)
+        fresh_session = True
+    else:
+        fresh_session = False
 
-    if path is None:
-        path = _SHOTS[-1]
+    try:
+        if path is None:
+            path = _SHOTS[-1]
 
-    path_pageshot = urljoin(SERVER_URL, path)
-    headers = {'content-type': 'application/json'}
+        path_pageshot = urljoin(SERVER_URL, path)
+        headers = {'content-type': 'application/json'}
 
-    async with session.get(path_pageshot, data={}, headers=headers) as r:
-        return r
+        async with session.get(path_pageshot, headers=headers) as resp:
+            return resp
+    finally:
+        if fresh_session:
+            session.close()
+
 
 
 _COOKIES = None

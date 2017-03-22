@@ -15,8 +15,9 @@ SHOT = None
 
 @global_setup()
 def login(args):
-    async def _create_shot(_):
-        return await utils.create_shot()
+    async def _create_shot(loop):
+        res = await utils.create_shot(loop=loop)
+        return res
 
     global SHOT
 
@@ -41,5 +42,6 @@ def logout():
 @scenario(100)
 async def read_shot(session):
     res = await utils.read_shot(session, SHOT)
+    await res.json()
     assert res.status == 200
     print("....", res)
