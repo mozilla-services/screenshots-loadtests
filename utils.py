@@ -1,8 +1,12 @@
+
 import json
 import os
 import random
 import time
 import uuid
+
+# aiohttp issue on unclosed client session - https://github.com/python/asyncio/issues/258
+import concurrent.futures  #
 
 from urllib.parse import urljoin
 
@@ -101,8 +105,11 @@ def run_in_fresh_loop(coro):
     Create a new async event loop.
     """
     loop = asyncio.new_event_loop()
+    executor = concurrent.futures.ThreadPoolExecutor(5)  # python/asyncio#258
+    loop.set_default_executor(executor)   # python/asyncio#258
     task = loop.create_task(coro(loop))
     res = loop.run_until_complete(task)
+    executor.shutdown(wait=True)  # python/asyncio#258
     loop.close()
     return res
 
@@ -154,9 +161,6 @@ def setup_worker(worker_id, args):
     return {'cookies': _COOKIES}
 
 
-_SHOTS = []
-
-
 async def create_shot(session=None):
     """
     Create/upload a new Page Shot shot.
@@ -165,14 +169,17 @@ async def create_shot(session=None):
         session = ClientSession(cookies=_COOKIES)
 
     path = "data/{}/test.com".format(make_uuid())
+
     if path not in _SHOTS:
         _SHOTS.append(path)
+
     path_pageshot = urljoin(SERVER_URL, path)
     data = make_example_shot()
     headers = {'content-type': 'application/json'}
 
     async with session.put(path_pageshot, data=json.dumps(data), headers=headers) as r:
         r.path = path
+        r.session = session
         return r
 
 
@@ -194,6 +201,7 @@ async def read_shot(session=None, path=None):
 
 
 _COOKIES = None
+_SHOTS = []
 
 exampleImages = get_example_images()
 deviceInfo = make_device_info()
