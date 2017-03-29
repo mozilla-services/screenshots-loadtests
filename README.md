@@ -1,8 +1,8 @@
-# Page Shot Load Tests
+# Firefox Screenshots Load Tests
 
-[![Build Status](https://travis-ci.org/pdehaan/pageshot-loadtests.svg?branch=master)](https://travis-ci.org/pdehaan/pageshot-loadtests)
+[![Build Status](https://travis-ci.org/mozilla-services/screenshots-loadtests.svg?branch=master)](https://travis-ci.org/mozilla-services/screenshots-loadtests)
 
-Async [**Page Shot**](https://github.com/mozilla-services/pageshot) load tests using [**molotov**](https://github.com/loads/molotov).
+Async [**Firefox Screenshots**](https://github.com/mozilla-services/screenshots) load tests using [**molotov**](https://github.com/loads/molotov).
 
 ## Requirements:
 
